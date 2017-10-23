@@ -792,7 +792,7 @@ class FtpClient implements Countable
                 'month'       => $chunks[5],
                 'day'         => $chunks[6],
                 'time'        => $chunks[7],
-                'name'        => $chunks[8],
+                'name'        => $this->getItemNameFromRawList($child, $chunks),
                 'type'        => $this->rawToType($chunks[0]),
             ];
 
@@ -873,5 +873,29 @@ class FtpClient implements Countable
         $this->ftp = $wrapper;
 
         return $this;
+    }
+
+    /**
+     * @param string $itemLine
+     * @param array  $chunks
+     *
+     * @return string|null
+     */
+    private function getItemNameFromRawList($itemLine, $chunks)
+    {
+        if (preg_match("/\d{2}:\d{2}/",$chunks[7])) {
+            $date = implode(' ', array_slice($chunks, 5, 3));
+        } else { // Used when only year is given
+            $date = implode(' ', array_slice($chunks, 5, 2)) . "  " . $chunks[7];
+        }
+
+        $regex = "/(?<=" . $date . "\s)[\.a-zA-Zа-яА-Я0-9_!\s]+/";
+        preg_match($regex, $itemLine, $matches);
+
+        if (!empty($matches)) {
+            return rtrim(array_shift($matches));
+        }
+
+        return null;
     }
 }
