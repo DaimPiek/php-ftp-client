@@ -81,8 +81,12 @@ class FtpWrapper
         $function = 'ftp_' . $function;
 
         if (function_exists($function)) {
-            array_unshift($arguments, $this->conn);
-            return call_user_func_array($function, $arguments);
+            if (is_resource($this->conn)) {
+                array_unshift($arguments, $this->conn);
+                return call_user_func_array($function, $arguments);
+            }
+
+            return null;
         }
 
         throw new FtpException("{$function} is not a valid FTP function");
